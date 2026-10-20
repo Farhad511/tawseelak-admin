@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>توصيلك - لوحة التحكم الشاملة</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#0F172A] text-white min-h-screen p-4 font-sans pb-12">
+
+    <!-- Header -->
+    <header class="bg-[#1E293B] p-4 rounded-2xl shadow-lg flex justify-between items-center mb-6 border border-slate-800">
+        <div>
+            <h1 class="text-base font-bold text-emerald-400">🚕 لوحة تحكم توصيلك</h1>
+            <p class="text-[11px] text-slate-400">إدارة مباشرة من الهاتف</p>
+        </div>
+        <button onclick="loadAllData()" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+            <span>تحديث</span> 🔄
+        </button>
+    </header>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+        <button onclick="openAddRideModal()" class="bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 p-3 rounded-2xl text-xs font-bold hover:bg-emerald-600/30 transition flex items-center justify-center gap-2">
+            <span>➕</span> إضافة رحلة
+        </button>
+        <button onclick="openAddDriverModal()" class="bg-blue-600/20 border border-blue-500/40 text-blue-300 p-3 rounded-2xl text-xs font-bold hover:bg-blue-600/30 transition flex items-center justify-center gap-2">
+            <span>🚗</span> تسجيل سائق
+        </button>
+    </div>
+
+    <!-- Data Containers -->
+    <div class="space-y-6">
+        <!-- Rides Section -->
+        <div class="bg-[#1E293B] p-4 rounded-2xl border border-slate-800 shadow-xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-slate-200">📍 إدارة الرحلات النشطة</h2>
+                <span id="rides-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full text-slate-400">0 رحلة</span>
+            </div>
+            <div id="rides-container" class="space-y-2.5 text-xs">
+                <p class="text-slate-500 text-center py-4">جارٍ جلب البيانات...</p>
+            </div>
+        </div>
+
+        <!-- Drivers Section -->
+        <div class="bg-[#1E293B] p-4 rounded-2xl border border-slate-800 shadow-xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-slate-200">🚗 إدارة السائقين</h2>
+                <span id="drivers-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full text-slate-400">0 سائق</span>
+            </div>
+            <div id="drivers-container" class="space-y-2.5 text-xs">
+                <p class="text-slate-500 text-center py-4">جارٍ جلب البيانات...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="rideModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-[#1E293B] border border-slate-700 w-full max-w-sm p-5 rounded-3xl space-y-4">
+            <h3 class="font-bold text-sm text-emerald-400">إضافة رحلة جديدة</h3>
+            <div>
+                <label class="text-[11px] text-slate-400 block mb-1">نوع الخدمة</label>
+                <input id="rideCategory" type="text" value="economy" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+            </div>
+            <div>
+                <label class="text-[11px] text-slate-400 block mb-1">الأجرة ($)</label>
+                <input id="rideFare" type="number" value="15.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="createRide()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-bold">إضافة</button>
+                <button onclick="closeModals()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl text-xs font-bold">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="driverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-[#1E293B] border border-slate-700 w-full max-w-sm p-5 rounded-3xl space-y-4">
+            <h3 class="font-bold text-sm text-blue-400">تسجيل سائق جديد</h3>
+            <div>
+                <label class="text-[11px] text-slate-400 block mb-1">رقم اللوحة</label>
+                <input id="driverPlate" type="text" placeholder="مثال: دمشق 12345" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="createDriver()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-xs font-bold">تسجيل</button>
+                <button onclick="closeModals()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl text-xs font-bold">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script>
+        const SUPABASE_URL = 'https://mhxdiupknpsmpjkrezkv.supabase.co';
+        const SUPABASE_ANON_KEY = 'أدخل_مفتاح_ANON_هنا';
+
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function loadAllData() {
+            await fetchRides();
+            await fetchDrivers();
+        }
+
+        async function fetchRides() {
+            const container = document.getElementById('rides-container');
+            const { data, error } = await db.from('rides').select('*').order('created_at', { ascending: false }).limit(10);
+            
+            if (error) {
+                container.innerHTML = `<p class="text-rose-400 text-center">خطأ: ${error.message}</p>`;
+                return;
+            }
+
+            document.getElementById('rides-count').innerText = `${data.length} رحلة`;
+
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-center py-4">لا توجد رحلات مسجلة حالياً.</p>';
+                return;
+            }
+
+            container.innerHTML = data.map(r => `
+                <div class="bg-slate-900/60 p-3 rounded-2xl flex justify-between items-center border border-slate-800">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-emerald-400">${r.category}</span>
+                            <span class="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md font-bold">${r.status}</span>
+                        </div>
+                        <span class="text-slate-400 block text-[10px] mt-0.5">السعر: $${r.fare_amount}</span>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="updateRideStatus('${r.id}', 'completed')" class="bg-blue-600/20 text-blue-400 px-2 py-1 rounded-lg text-[10px] font-bold">إنهاء</button>
+                        <button onclick="deleteRide('${r.id}')" class="bg-rose-600/20 text-rose-400 px-2 py-1 rounded-lg text-[10px] font-bold">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function fetchDrivers() {
+            const container = document.getElementById('drivers-container');
+            const { data, error } = await db.from('drivers').select('*').limit(10);
+            
+            if (error) {
+                container.innerHTML = `<p class="text-rose-400 text-center">خطأ: ${error.message}</p>`;
+                return;
+            }
+
+            document.getElementById('drivers-count').innerText = `${data.length} سائق`;
+
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-center py-4">لا يوجد سائقين مسجلين حالياً.</p>';
+                return;
+            }
+
+            container.innerHTML = data.map(d => `
+                <div class="bg-slate-900/60 p-3 rounded-2xl flex justify-between items-center border border-slate-800">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-slate-200">لوحة: ${d.vehicle_plate}</span>
+                            <span class="text-[10px] px-2 py-0.5 ${d.is_online ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'} rounded-md font-bold">
+                                ${d.is_online ? 'متصل' : 'غير متصل'}
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="toggleDriverStatus('${d.id}', ${d.is_online})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-xl text-[10px] font-bold">
+                        تبديل الحالة
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function openAddRideModal() { document.getElementById('rideModal').style.display = 'flex'; }
+        function openAddDriverModal() { document.getElementById('driverModal').style.display = 'flex'; }
+        function closeModals() { 
+            document.getElementById('rideModal').style.display = 'none'; 
+            document.getElementById('driverModal').style.display = 'none'; 
+        }
+
+        async function createRide() {
+            const category = document.getElementById('rideCategory').value;
+            const fare_amount = parseFloat(document.getElementById('rideFare').value);
+            const { error } = await db.from('rides').insert([{ category, fare_amount, status: 'requested' }]);
+            if (error) alert('خطأ: ' + error.message);
+            else { closeModals(); fetchRides(); }
+        }
+
+        async function updateRideStatus(id, newStatus) {
+            const { error } = await db.from('rides').update({ status: newStatus }).eq('id', id);
+            if (error) alert('خطأ: ' + error.message);
+            else fetchRides();
+        }
+
+        async function deleteRide(id) {
+            if (confirm('هل أنت متأكد من الحذف؟')) {
+                const { error } = await db.from('rides').delete().eq('id', id);
+                if (error) alert('خطأ: ' + error.message);
+                else fetchRides();
+            }
+        }
+
+        async function toggleDriverStatus(id, currentStatus) {
+            const { error } = await db.from('drivers').update({ is_online: !currentStatus }).eq('id', id);
+            if (error) alert('خطأ: ' + error.message);
+            else fetchDrivers();
+        }
+
+        async function createDriver() {
+            const vehicle_plate = document.getElementById('driverPlate').value;
+            const { error } = await db.from('drivers').insert([{ vehicle_plate, vehicle_type: 'economy', is_online: true }]);
+            if (error) alert('خطأ: ' + error.message);
+            else { closeModals(); fetchDrivers(); }
+        }
+
+        loadAllData();
+    </script>
+</body>
+</html>
